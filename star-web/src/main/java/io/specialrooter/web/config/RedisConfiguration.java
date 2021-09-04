@@ -1,5 +1,6 @@
 package io.specialrooter.web.config;
 
+import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +31,10 @@ public class RedisConfiguration {
         // 设置value的序列化规则和 key的序列化规则
         redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
+
+        redisTemplate.setHashKeySerializer(new FastJsonRedisSerializer<>(Object.class));
+        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
+
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }

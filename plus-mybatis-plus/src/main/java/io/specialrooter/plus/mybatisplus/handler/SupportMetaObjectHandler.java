@@ -2,6 +2,7 @@ package io.specialrooter.plus.mybatisplus.handler;
 
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.google.common.base.CaseFormat;
 import io.specialrooter.context.util.ApiUtils;
 import org.apache.ibatis.reflection.MetaObject;
@@ -20,18 +21,21 @@ public class SupportMetaObjectHandler implements MetaObjectHandler {
     @Autowired
     private IdStrategyGenerator idStrategyGenerator;
 
+    @Autowired
+    private OauthRedisHandler oauthRedisHandler;
+
     @Override
     public void insertFill(MetaObject metaObject) {
         //String className = metaObject.getOriginalObject().getClass().getSimpleName();
         //String to = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
-        Long currentUserId = ApiUtils.getCurrentUserId(0L);
+        Long currentUserId = oauthRedisHandler.getCurrentUserId(0L);
 
         Object id = this.getFieldValByName("id", metaObject);
-        //动态插入值
+//        //动态插入值
         if (ObjectUtils.isEmpty(id)) {
 
-            long bd_dict = idStrategyGenerator.nextId(metaObject.getOriginalObject().getClass());
-            this.setFieldValByName("id", bd_dict, metaObject);
+            long id1 = IdWorker.getId(metaObject);
+            this.setFieldValByName("id", id1, metaObject);
         }
 
         Object createUserId = this.getFieldValByName("createUserId", metaObject);
@@ -64,7 +68,7 @@ public class SupportMetaObjectHandler implements MetaObjectHandler {
 
         Object createUserId = this.getFieldValByName("modifyUserId", metaObject);
         if (ObjectUtils.isEmpty(createUserId)) {
-            this.setFieldValByName("modifyUserId",  ApiUtils.getCurrentUserId(0L) , metaObject);
+            this.setFieldValByName("modifyUserId",  oauthRedisHandler.getCurrentUserId(0L) , metaObject);
         }
         this.setFieldValByName("modifyTime", LocalDateTime.now(), metaObject);
     }

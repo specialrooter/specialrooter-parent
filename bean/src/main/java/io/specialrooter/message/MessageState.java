@@ -19,6 +19,7 @@ public enum MessageState {
     LOGIN_IS_OVERDUE(208, "登录已失效"),
     SERVER_LOGIC_ERROR(500,"服务端逻辑错误"),
     FORECASTING_ERROR(513, "可预判的错误!"),
+    UNDEFINED_ERROR(500000, "未定义错误编码!"),
     FORECASTING_UNIQUE_ERROR(514, "属性唯一错误!");
 
     private final int value;

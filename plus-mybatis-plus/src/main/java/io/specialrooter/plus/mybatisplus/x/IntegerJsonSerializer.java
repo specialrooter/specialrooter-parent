@@ -3,7 +3,6 @@ package io.specialrooter.plus.mybatisplus.x;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.specialrooter.plus.mybatisplus.basic.Constant;
 
 import java.io.IOException;
 

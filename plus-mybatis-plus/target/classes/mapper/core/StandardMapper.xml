@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.specialrooter.standard.component.mapper.StandardMapper">
+    <insert id="saveOrUpdate" parameterType="map">
+        INSERT INTO ${table}
+        <foreach collection="fields" index="field"  item="fieldVal" separator="," open="(" close=")">
+            ${fieldVal}
+        </foreach>
+         VALUES
+        <foreach collection="list" index="index" item="record" separator="," >
+            <foreach collection="record" index="key"  item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        <foreach collection="fields" index="field"  item="fieldVal" separator=",">
+            ${fieldVal} = VALUES(${fieldVal})
+        </foreach>
+--         字段1 = VALUES(值1), 字段2 = VALUES(值2), 时间3= now()
+    </insert>
+</mapper>

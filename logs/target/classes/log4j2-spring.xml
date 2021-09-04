@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <!-- 公共属性属性 -->
+    <properties>
+        <property name="LOG_HOME">${LOG_PATH}</property>
+        <Property name="KAFKA_SERVERS">10.210.100.17:9092</Property>>
+        <property name="FILE_PATTERN">{"timeMillis":"%d","thread":"%t","threadId":"%T","traceId":"%X{X-B3-TraceId}","level":"%-5p","className":"%c{1.}.%M(%L)","message":"%m","exception":"%rEx"}%n</property>
+        <property name="CONSOLE_PATTERN">%d  %style{[%t]-[%T]}{Cyan} %style{[%X{X-B3-TraceId}]}{Magenta}--%highlight{%-5p}-%c{1.}.%M(%L)-%m-%highlight{%rEx}%n</property>
+    </properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT" ignoreExceptions="true">
+            <PatternLayout pattern="${FILE_PATTERN}" disableAnsi="false" noConsoleNoAnsi="false"/>
+        </Console>
+        <Kafka name="Kafka" topic="log-topic" ignoreExceptions="false">
+            <PatternLayout pattern="${CONSOLE_PATTERN}" disableAnsi="false" noConsoleNoAnsi="false"/>
+            <Property name="bootstrap.servers">${KAFKA_SERVERS}</Property>
+            <Property name="timeout.ms">4000</Property>
+        </Kafka>
+
+        <RollingFile name="INFO_ROLLING_FILE"
+                     fileName="${LOG_HOME}/${fileName}-${date:yyyy-MM-dd}-info.log"
+                     filePattern="${LOG_HOME}/${fileName}/${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log.gz" ignoreExceptions="true">
+            <!--ThresholdFilter :日志输出过滤-->
+            <!--level="info" :日志级别,onMatch="ACCEPT" :级别在info之上则接受,onMismatch="DENY" :级别在info之下则拒绝-->
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${FILE_PATTERN}" disableAnsi="false" noConsoleNoAnsi="false"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="4" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20 -->
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+        <RollingFile name="WARN_ROLLING_FILE"
+                     fileName="${LOG_HOME}/${fileName}-${date:yyyy-MM-dd}-warn.log"
+                     filePattern="${LOG_HOME}/${fileName}/${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log.gz" ignoreExceptions="true">
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            <!--            <JsonLayout compact="true" eventEol = "true"/>-->
+            <PatternLayout pattern="${FILE_PATTERN}" disableAnsi="false" noConsoleNoAnsi="false"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="4" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+        <RollingFile name="ERROR_ROLLING_FILE"
+                     fileName="${LOG_HOME}/${fileName}-${date:yyyy-MM-dd}-error.log"
+                     filePattern="${LOG_HOME}/${fileName}/${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log.gz" ignoreExceptions="true">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            <!--            <JsonLayout compact="true" complet="true" />-->
+            <PatternLayout pattern="${FILE_PATTERN}" disableAnsi="false" noConsoleNoAnsi="false"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="4" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+
+        <RollingFile name="FAIL_OVER_KAFKA_FILE"
+                     fileName="${LOG_HOME}/${fileName}-${date:yyyy-MM-dd}-kafka.log"
+                     filePattern="${LOG_HOME}/${fileName}/${date:yyyy-MM}/kafka-%d{yyyy-MM-dd}-%i.log.gz" ignoreExceptions="true">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${FILE_PATTERN}" disableAnsi="false" noConsoleNoAnsi="false"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="4" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20 -->
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+
+        <Failover name="Failover" primary="Kafka" retryIntervalSeconds="600">
+            <Failovers>
+                <AppenderRef ref="FAIL_OVER_KAFKA_FILE"/>
+                <!--                <AppenderRef ref="Console"/>-->
+            </Failovers>
+        </Failover>
+
+        <Async name="AsyncKafka">
+            <AppenderRef ref="Failover"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <!--过滤掉spring和mybatis的一些无用的DEBUG信息-->
+        <!--Logger节点用来单独指定日志的形式，name为包路径,比如要为org.springframework包下所有日志指定为INFO级别等。 -->
+        <logger name="org.springframework" level="INFO"></logger>
+        <logger name="org.mybatis" level="INFO"></logger>
+        <logger name="org.apache.kafka" level="INFO" /> <!-- avoid recursive logging -->
+
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncKafka"/>
+            <AppenderRef ref="WARN_ROLLING_FILE"/>
+            <AppenderRef ref="INFO_ROLLING_FILE"/>
+            <AppenderRef ref="ERROR_ROLLING_FILE"/>
+        </Root>
+    </Loggers>
+</configuration>

@@ -1,0 +1,3 @@
+io/specialrooter/oauth2/model/User.class
+io/specialrooter/oauth2/service/impl/SpecialRooterUserDetailsService.class
+io/specialrooter/oauth2/filter/CsrfHeaderFilter.class

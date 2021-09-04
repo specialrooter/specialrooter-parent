@@ -2,11 +2,15 @@ package io.specialrooter.http;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.*;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -19,9 +23,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.http.HttpResponse;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -75,17 +79,41 @@ public class HttpRequestUtils {
         return IOUtils.toString(inputStream, "UTF-8");
     }
 
+    public static String doGet(String url) {
+        return doGet(url, null, null);
+    }
+
+    public static String doGet(String url, Map<String, String> params) {
+        return doGet(url, null, params);
+    }
 
     /**
      * get请求
      *
      * @return
      */
-    public static String doGet(String url) {
+    public static String doGet(String url, Map<String, String> params, Map<String, String> headers) {
         try {
             CloseableHttpClient client = HttpClients.createDefault();
+
+            URIBuilder uriBuilder = new URIBuilder(url);
+
+            if (params != null && !params.isEmpty()) {
+                params.forEach((x, y) -> {
+                    uriBuilder.addParameter(x, y);
+                });
+            }
+
             //发送get请求
-            HttpGet request = new HttpGet(url);
+            HttpGet request = new HttpGet(uriBuilder.build());
+
+            if (headers != null && !headers.isEmpty()) {
+                headers.forEach((x, y) -> {
+                    request.addHeader(x, y);
+                });
+            }
+
+
             CloseableHttpResponse response = client.execute(request);
 
             /**请求发送成功，并得到响应**/
@@ -95,7 +123,7 @@ public class HttpRequestUtils {
 
                 return strResult;
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
 
@@ -172,6 +200,54 @@ public class HttpRequestUtils {
         httpPost.setHeader("Authorization", token);
         String charSet = "UTF-8";
         StringEntity entity = new StringEntity(params, charSet);
+        httpPost.setEntity(entity);
+        CloseableHttpResponse response = null;
+
+        try {
+
+            response = httpclient.execute(httpPost);
+            StatusLine status = response.getStatusLine();
+            int state = status.getStatusCode();
+            if (state == HttpStatus.SC_OK) {
+                HttpEntity responseEntity = response.getEntity();
+                String jsonString = EntityUtils.toString(responseEntity);
+                return jsonString;
+            } else {
+                System.err.println("请求返回:" + state + "(" + url + ")");
+            }
+        } finally {
+            if (response != null) {
+                try {
+                    response.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                httpclient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * post请求（用于请求json格式的参数）
+     *
+     * @param url
+     * @param params
+     * @return
+     */
+    public static String doPost(String url, String params) throws Exception {
+
+        CloseableHttpClient httpclient = /*new SSLClient();*/HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(url);// 创建httpPost
+        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Content-Type", "application/json");
+        String charSet = "UTF-8";
+        StringEntity entity = new StringEntity(params, charSet);
+        entity.setContentType("application/json");
         httpPost.setEntity(entity);
         CloseableHttpResponse response = null;
 

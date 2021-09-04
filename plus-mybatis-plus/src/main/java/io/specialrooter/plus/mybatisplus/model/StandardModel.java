@@ -33,16 +33,28 @@ public class StandardModel extends BaseModel{
     protected LocalDateTime modifyTime;
 
     /**
-     * 创建人员
+     * 创建人员ID
      */
     @TableField(fill = FieldFill.INSERT)
     protected Long createUserId;
 
+//    /**
+//     * 创建人员名称
+//     */
+//    @TableField(fill = FieldFill.INSERT)
+//    protected String createUser;
+
     /**
-     * 修改人员
+     * 修改人员ID
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     protected Long modifyUserId;
+
+//    /**
+//     * 修改人员名称
+//     */
+//    @TableField(fill = FieldFill.INSERT_UPDATE)
+//    protected Long modifyUser;
 
     /**
      * 删除状态

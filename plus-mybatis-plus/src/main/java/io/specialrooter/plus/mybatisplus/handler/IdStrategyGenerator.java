@@ -1,11 +1,10 @@
 package io.specialrooter.plus.mybatisplus.handler;
 
 import com.google.common.base.CaseFormat;
-import io.specialrooter.plus.mybatisplus.basic.Constant;
+import io.specialrooter.plus.mybatisplus.basic.GlobalConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
+@Deprecated
 public class IdStrategyGenerator {
     @Autowired
     private SnowflakeIdGenerator snowflakeIdGenerator;
@@ -17,7 +16,7 @@ public class IdStrategyGenerator {
 
     public Long nextId(String type) {
 
-        return Constant.ID_STRATEGY.equals("snow") ? snowflakeIdGenerator.nextId() : Constant.ID_STRATEGY.equals("meta") ? MetaSequencer.nextID(type) : null;
+        return GlobalConstants.ID_STRATEGY.equals("snow") ? snowflakeIdGenerator.nextId() : GlobalConstants.ID_STRATEGY.equals("meta") ? MetaSequencer.nextID(type) : null;
     }
 
     public MetaBatchSequenceData batchIds(Class clazz,long num){

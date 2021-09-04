@@ -1,0 +1,36 @@
+package io.specialrooter.web.processor;
+
+import io.specialrooter.web.exec.LocalGitExecutor;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.cloud.consul.discovery.ConsulDiscoveryProperties;
+import org.springframework.stereotype.Component;
+
+//@Component
+public class ConsulConfigPostProcessor implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof ConsulDiscoveryProperties) {
+
+            ConsulDiscoveryProperties properties = (ConsulDiscoveryProperties) bean;
+//            String instanceId = properties.getInstanceId();
+//            System.out.println("InstanceID:      " + instanceId);
+//            instanceId += "__MODIFY";
+//            properties.setInstanceId(instanceId);
+//
+//            List<String> tags = properties.getTags();
+            String name = LocalGitExecutor.name();
+            String email = LocalGitExecutor.email();
+            if(StringUtils.isNotBlank(name)){
+                properties.getTags().add("user="+ LocalGitExecutor.name());
+            }
+
+            if(StringUtils.isNotBlank(email)){
+                properties.getTags().add("email="+ LocalGitExecutor.email());
+            }
+        }
+        return null;
+    }
+}

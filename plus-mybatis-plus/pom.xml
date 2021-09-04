@@ -5,7 +5,7 @@
     <parent>
         <artifactId>specialrooter-parent</artifactId>
         <groupId>io.specialrooter</groupId>
-        <version>5.2.0-SNAPSHOT</version>
+        <version>5.7.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,24 +19,33 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.baomidou</groupId>-->
+<!--            <artifactId>dynamic-datasource-spring-boot-starter</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>io.specialrooter</groupId>
             <artifactId>security</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.specialrooter</groupId>
-            <artifactId>plus-jackson</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.specialrooter</groupId>-->
+<!--            <artifactId>plus-jackson</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>io.specialrooter</groupId>
             <artifactId>utils</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>io.specialrooter</groupId>
+            <artifactId>bean</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>4.41.1</version>
+<!--            <scope>provided</scope>-->
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
@@ -53,6 +62,16 @@
 <!--            <scope>provided</scope>-->
 <!--        </dependency>-->
 
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+        </dependency>
+        <!-- 链路跟踪 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

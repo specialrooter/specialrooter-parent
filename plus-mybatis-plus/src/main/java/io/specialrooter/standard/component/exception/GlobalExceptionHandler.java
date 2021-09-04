@@ -1,10 +1,17 @@
 package io.specialrooter.standard.component.exception;
 
+import brave.Span;
+import brave.Tracer;
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Throwables;
 import io.specialrooter.message.MessageResponse;
 import io.specialrooter.message.MessageState;
+import io.specialrooter.standard.component.log.PrettyLoggersCloudHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,7 +26,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.validation.UnexpectedTypeException;
 import javax.validation.ValidationException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +38,11 @@ import java.util.Set;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @Autowired
+    Tracer tracer;
+//    @Autowired
+//    private PrettyLoggersCloudHandler prettyLoggersCloudHandler;
 
     /**
      * 服务器内部异常统一返回
@@ -45,14 +60,31 @@ public class GlobalExceptionHandler {
         String msg = getMassage(message);
 
         if (ex instanceof NoHandlerFoundException) {
-            return MessageResponse.error(404, "请求地址错误").setState(404);
+            log.error("404 Exception", ex);
+            return MessageResponse.error(404, "请求地址错误");
+        } else if (ex instanceof HttpMessageNotReadableException) {
+            Throwable rootCause1 = ExceptionUtils.getRootCause(ex);
+            log.error("400 Exception", ex);
+            return MessageResponse.error(400, rootCause1.getMessage());
+        } else if (ex instanceof GlobalException) {
+            int code = ((GlobalException) ex).getCode();
+            String msg1 = ((GlobalException) ex).getMsg();
+            return MessageResponse.error(code, msg1);
         }
-
-        log.error("404Exception",ex);
-        ex.printStackTrace();
-
-
         return MessageResponse.error(MessageState.SERVER_LOGIC_ERROR, msg);
+    }
+
+    /**
+     * 自定义服务运行异常统一返回
+     *
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(GlobalException.class)
+    @ResponseBody
+    public MessageResponse handleExceptionCustom(GlobalException ex) {
+        log.error("GlobalException::" + ex.getCode(), ex);
+        return MessageResponse.error(ex.getCode(), ex.getMsg());
     }
 
 
@@ -64,13 +96,22 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
-    public MessageResponse handleExceptionRuntime(Exception ex) {
+    public MessageResponse handleExceptionRuntime(RuntimeException ex) {
 
         Throwable rootCause = Throwables.getRootCause(ex);
         String message = rootCause.getMessage();
         String msg = getMassage(message);
 
-        log.error("500Exception",ex);
+        log.error("500Exception", ex);
+        Span span = tracer.newChild(tracer.currentSpan().context()).name("exception").start();
+        span.tag("error", MessageState.FORECASTING_ERROR.reasonPhrase());
+        span.tag("message", getExceptionToString(ex));
+        span.tag("class","");
+        span.tag("method","");
+        span.finish();
+
+        // 设置出错接口异常点类的日志等级
+//        prettyLoggersCloudHandler.open(ex);
 
         return MessageResponse.error(MessageState.FORECASTING_ERROR, msg);
     }
@@ -83,15 +124,15 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AuthException.class)
     @ResponseBody
-    public MessageResponse handleException3(Exception ex) {
+    public MessageResponse handleException3(AuthException ex) {
 
         Throwable rootCause = Throwables.getRootCause(ex);
         String message = rootCause.getMessage();
         String msg = getMassage(message);
 
         ex.printStackTrace();
-        log.error("500Exception",ex);
-        return MessageResponse.error(MessageState.USER_NO_ACCESS, msg);
+        log.error("204Exception", ex);
+        return MessageResponse.error(204, msg);
     }
 
     private String getMassage(String message) {
@@ -127,9 +168,16 @@ public class GlobalExceptionHandler {
         } else if (ex instanceof MethodArgumentNotValidException) {
             MethodArgumentNotValidException exs = (MethodArgumentNotValidException) ex;
             map = getErrors(exs.getBindingResult());
+        } else if (ex instanceof UnexpectedTypeException) {
+            Throwable rootCause = Throwables.getRootCause(ex);
+            map.put("数据验证匹配错误", "开发小哥哥配置错误：" + rootCause.getMessage());
         }
 
-        return MessageResponse.error(map, MessageState.FORECASTING_ERROR, "参数错误").setState(513);
+        String s = JSON.toJSONString(map);
+
+        return MessageResponse.error(505, s);
+
+//        return MessageResponse.error(map, MessageState.FORECASTING_ERROR, "参数错误").setState(513);
     }
 
     /**
@@ -142,7 +190,8 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public MessageResponse oauthHandleException(Exception ex, HttpServletResponse response) {
         response.setStatus(801);
-        return MessageResponse.error(ex.getMessage()).setState(801).setStatus(801);
+        return MessageResponse.error(801, null);
+//        return MessageResponse.error(ex.getMessage()).setState(801).setStatus(801);
     }
 
     /***
@@ -159,4 +208,15 @@ public class GlobalExceptionHandler {
         return map;
     }
 
+    /**
+     * 将 Exception 转化为 String
+     */
+    public static String getExceptionToString(Throwable e) {
+        if (e == null){
+            return "";
+        }
+        StringWriter stringWriter = new StringWriter();
+        e.printStackTrace(new PrintWriter(stringWriter));
+        return stringWriter.toString();
+    }
 }

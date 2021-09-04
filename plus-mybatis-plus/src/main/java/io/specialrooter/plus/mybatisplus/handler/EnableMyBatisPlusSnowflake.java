@@ -1,6 +1,6 @@
 package io.specialrooter.plus.mybatisplus.handler;
 
-import io.specialrooter.plus.mybatisplus.basic.Constant;
+import io.specialrooter.plus.mybatisplus.basic.GlobalConstants;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
@@ -12,6 +12,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-@Import({SnowflakeIdGeneratorConfig.class, Constant.class})
+@Import({SnowflakeIdGeneratorConfig.class, GlobalConstants.class})
 public @interface EnableMyBatisPlusSnowflake {
 }

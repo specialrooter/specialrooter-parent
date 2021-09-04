@@ -1,0 +1,11 @@
+io/specialrooter/http/ssl/DefaultTrustManager.class
+io/specialrooter/http/ssl/DefaultHostnameVerifier.class
+io/specialrooter/http/HttpRequestUtils$2.class
+io/specialrooter/http/HttpRequestUtils.class
+io/specialrooter/http/ssl/factory/TLSSocketConnectionFactory$1$2.class
+io/specialrooter/http/ssl/factory/TLSSocketConnectionFactory.class
+io/specialrooter/http/ssl/factory/TLSSocketConnectionFactory$1.class
+io/specialrooter/http/ssl/factory/SSL.class
+io/specialrooter/http/ssl/factory/TLSSocketConnectionFactory$1$2$1.class
+io/specialrooter/http/ssl/factory/TLSSocketConnectionFactory$1$1.class
+io/specialrooter/http/HttpRequestUtils$1.class

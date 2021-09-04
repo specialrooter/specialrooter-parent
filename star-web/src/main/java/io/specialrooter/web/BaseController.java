@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.specialrooter.context.util.ApiUtils;
 import io.specialrooter.plus.mybatisplus.util.DateUtils;
 import io.specialrooter.context.model.UserDTO;
-import io.specialrooter.web.request.RequestList;
-import io.specialrooter.web.request.RequestPage;
-import io.specialrooter.web.request.SimpleRequestList;
-import io.specialrooter.web.request.SimpleRequestPage;
+import io.specialrooter.web.request.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
@@ -33,6 +30,9 @@ public class BaseController<T> {
 
 //    @Autowired
 //    protected ServletServerHttpRequest request;
+
+
+
 
     public QueryWrapper<T> queryExpress(RequestPage requestPage) {
         return queryExpressList(requestPage);

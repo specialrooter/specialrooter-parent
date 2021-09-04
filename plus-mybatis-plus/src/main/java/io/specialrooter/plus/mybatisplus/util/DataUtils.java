@@ -15,6 +15,9 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -48,6 +51,196 @@ public class DataUtils extends org.springframework.beans.BeanUtils {
         return toGroup(maps, Collectors.groupingBy((o) -> {
             return String.valueOf(((Map) o).get(groupField));
         }));
+    }
+
+    public static <T> List<T> convert(List<?> list, Class<T> clazz) {
+        List<T> newList = list.stream().map(obj -> {
+            T o = copyProperties(obj, clazz);
+            return o;
+        }).collect(Collectors.toList());
+        return newList;
+    }
+
+    /**
+     * 字符串 转换为对应的 UTF-8编码
+     * 实现方式：将字符串转10进制数侯转化成16进制数
+     *
+     * @param s
+     * @return
+     */
+    public static String convertStringToUTF8(String s) {
+        StringBuffer sb = new StringBuffer();
+        try {
+            char c;
+            for (int i = 0; i < s.length(); i++) {
+                c = s.charAt(i);
+                byte[] b;
+
+                b = Character.toString(c).getBytes("utf-8");
+
+                for (int j = 0; j < b.length; j++) {
+                    int k = b[j];
+                    if (k < 0)
+                        k += 256;
+                    sb.append(Integer.toHexString(k).toUpperCase());
+                }
+            }
+            System.err.println(sb.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * UTF-8编码 转换为对应的 字符串
+     * 实现方式：将16进制数转化成有符号的十进制数
+     *
+     * @param s
+     * @return
+     */
+    public static String convertUTF8ToString(String s) {
+        if (s == null || s.equals("")) {
+            return null;
+        }
+        try {
+            s = s.toUpperCase();
+            int total = s.length() / 2;
+            //标识字节长度
+            int pos = 0;
+            byte[] buffer = new byte[total];
+            for (int i = 0; i < total; i++) {
+                int start = i * 2;
+                //将字符串参数解析为第二个参数指定的基数中的有符号整数。
+                buffer[i] = (byte) Integer.parseInt(s.substring(start, start + 2), 16);
+                pos++;
+            }
+            //通过使用指定的字符集解码指定的字节子阵列来构造一个新的字符串。
+            //新字符串的长度是字符集的函数，因此可能不等于子数组的长度。
+            return new String(buffer, 0, pos, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return s;
+    }
+
+    /**
+     * 显示 maven 引入 groupIds，用于优化spring boot 项目打包体积
+     * <build>
+     * <plugins>
+     * <plugin>
+     * <groupId>org.springframework.boot</groupId>
+     * <artifactId>spring-boot-maven-plugin</artifactId>
+     * <executions>
+     * <execution>
+     * <goals>
+     * <goal>repackage</goal>
+     * </goals>
+     * </execution>
+     * </executions>
+     * <configuration>
+     * <fork>true</fork>
+     * <layout>ZIP</layout>
+     * <includes>
+     * <include>
+     * <!-- 排除所有Jar -->
+     * <groupId>nothing</groupId>
+     * <artifactId>nothing</artifactId>
+     * </include>
+     * </includes>
+     * <!--去除在生产环境中不变的依赖-->
+     * <excludeGroupIds>
+     * <!-- mvnDependencyTreeGroupIds 逗号进行分隔 -->
+     * <excludeGroupIds>
+     * </configuration>
+     * <plugin>
+     * <plugins>
+     * <build>
+     */
+    public static void mvnDependencyTreeGroupIds() {
+        String commandStr = "mvn dependency:tree";
+        BufferedReader br = null;
+        Set<String> set = new HashSet<>();
+        try {
+            Process p = Runtime.getRuntime().exec(commandStr);
+            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith("[INFO]") && (line.indexOf("\\-") != -1 || line.indexOf("+-") != -1)) {
+                    set.add(line.substring(line.indexOf("-") + 2, line.indexOf(":")));
+                }
+
+            }
+            set.forEach(s -> {
+                System.out.println(s + ",");
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void mvnDependencyTree() {
+        String commandStr = "mvn dependency:tree";
+        BufferedReader br = null;
+        try {
+            Process p = Runtime.getRuntime().exec(commandStr);
+            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                //if(line.startsWith("[INFO]") && (line.indexOf("\\-")!=-1 || line.indexOf("+-")!=-1))
+                sb.append(line + "\n");
+            }
+            System.out.println(sb.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * 执行cmd命令，显示cmd命令结果
+     *
+     * @param commandStr
+     */
+    public static void exeCmd(String commandStr) {
+        BufferedReader br = null;
+        try {
+            Process p = Runtime.getRuntime().exec(commandStr);
+            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+            System.out.println(sb.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 
@@ -222,6 +415,7 @@ public class DataUtils extends org.springframework.beans.BeanUtils {
                     //System.out.println(levelMap.get(map.get(id))+"-->"+);
                     map.put("level", levelMap.get(map.get(id)));
                     map.put("key", map.get(id));
+                    map.put("isLeaf", true);
                 });
                 all.addAll(maps1);
             });
@@ -229,6 +423,7 @@ public class DataUtils extends org.springframework.beans.BeanUtils {
             treeMap.forEach((o, maps1) -> {
                 maps1.forEach(map -> {
                     map.put("level", levelMap.get(map.get(id)));
+                    map.put("isLeaf", true);
                 });
                 all.addAll(maps1);
             });
@@ -327,6 +522,7 @@ public class DataUtils extends org.springframework.beans.BeanUtils {
 //        for (Map<String, Object> map : maps2) {
 //            System.out.println(map);
 //        }
+        mvnDependencyTree();
     }
 
     /**
@@ -399,7 +595,7 @@ public class DataUtils extends org.springframework.beans.BeanUtils {
         for (i = 0; i <= level; ++i) {
             int finalI = i;
             List<Map<String, Object>> items = (List) data.stream().filter((map) -> {
-                return map != null && !map.isEmpty() && M.integer(map, levelName)!=null && M.integer(map, levelName).equals(finalI);
+                return map != null && !map.isEmpty() && M.integer(map, levelName) != null && M.integer(map, levelName).equals(finalI);
             }).collect(Collectors.toList());
             supper.put(i, items);
 //            Map<String, List<Map<String, Object>>> itemKeyMaps = (Map) items.stream().collect(Collectors.groupingBy((o) -> {
@@ -418,7 +614,7 @@ public class DataUtils extends org.springframework.beans.BeanUtils {
                 if (maps != null && maps.size() > 0) {
                     map.put("children", maps);
                     map.put("isLeaf", false);
-                    if(finalI1<2){
+                    if (finalI1 < 2) {
                         map.put("expanded", true);
                     }
                 } else {
@@ -517,4 +713,17 @@ public class DataUtils extends org.springframework.beans.BeanUtils {
         copyProperties(object, obj);
         return obj;
     }
+
+
+    public static Field[] getAllFields(Class clazz) {
+        List<Field> fieldList = new ArrayList<>();
+        while (clazz != null) {
+            fieldList.addAll(new ArrayList<>(Arrays.asList(clazz.getDeclaredFields())));
+            clazz = clazz.getSuperclass();
+        }
+        Field[] fields = new Field[fieldList.size()];
+        fieldList.toArray(fields);
+        return fields;
+    }
+
 }
