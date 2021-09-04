@@ -7,6 +7,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +31,18 @@ public class GeneratorController {
     @ApiOperation(value = "自动生成CRUD代码", hidden = false)
     @PostMapping("gen/code")
     public MessageResponse code(@RequestBody @ApiParam(value = "代码生成参数", required = true) GeneratorRequestModel model) {
-        codeGenerator.run(model.getTable(), model.getAuthor(),model.getDatasource());
+        codeGenerator.run(model.getTable(), model.getAuthor(),model.getFilterPrefix(),model.getDatasource());
         return MessageResponse.success("自动生成是否成功，请返回控制台及IDEA查看");
     }
+
+    /**
+     *
+     * @return
+     */
+    @ApiOperation(value = "服务状态", hidden = true)
+    @GetMapping("htl/actr")
+    public MessageResponse actuator(){
+        return MessageResponse.success();
+    }
+
 }

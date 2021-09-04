@@ -22,11 +22,14 @@ public class DictHelper {
     @Value("${io.specialrooter.dict-source:MEMORY}")
     protected String dictSource;
 
-
     public void init(List items) {
+        init(items,"dictItemIndex");
+    }
+
+    public void init(List items,String pName) {
         if ("MEMORY".equals(dictSource)) {
             try {
-                initMemory(items);
+                initMemory(items,pName);
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
@@ -37,18 +40,22 @@ public class DictHelper {
         }
     }
 
+    public void initMemory(List items) throws InvocationTargetException, IllegalAccessException {
+        initMemory(items,"dictItemIndex");
+    }
+
     /**
      * 初始化所有数据字典的值
      *
      * @param items
      */
-    public void initMemory(List items) throws InvocationTargetException, IllegalAccessException {
+    public void initMemory(List items,String pName) throws InvocationTargetException, IllegalAccessException {
         Dictionary<String, Dictionary<String, DictItemModel>> newDict = new Hashtable<>();
 
         for (Object item : items) {
             DictItemModel dictItemModel = new DictItemModel();
             BeanUtils.copyProperties(item, dictItemModel);
-            Object dictItemIndex = BeanUtils.getPropertyDescriptor(item.getClass(), "dictItemIndex").getReadMethod().invoke(item);
+            Object dictItemIndex = BeanUtils.getPropertyDescriptor(item.getClass(), pName).getReadMethod().invoke(item);
             dictItemModel.setDictItemIndex(Long.valueOf(String.valueOf(dictItemIndex)));
             Dictionary dict = newDict.get(dictItemModel.getDictKey());
             if (dict == null) {

@@ -6,11 +6,13 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 
 @ApiModel("分页查询参数")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
+@Deprecated
 public class RequestPage extends RequestList{
     @ApiModelProperty(required=true,value = "第一页",example="1")
     private int pageIndex;

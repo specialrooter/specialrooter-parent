@@ -1,0 +1,10 @@
+io/specialrooter/model/GeneratorRequestModel.class
+io/specialrooter/model/StandardIdBatch.class
+io/specialrooter/message/MessageResponse2.class
+io/specialrooter/model/StandardBean.class
+io/specialrooter/message/ResponseModel.class
+io/specialrooter/message/MessageResponse.class
+io/specialrooter/model/StandardId.class
+io/specialrooter/model/Standard.class
+io/specialrooter/message/MessageState.class
+io/specialrooter/message/ResponseCode.class

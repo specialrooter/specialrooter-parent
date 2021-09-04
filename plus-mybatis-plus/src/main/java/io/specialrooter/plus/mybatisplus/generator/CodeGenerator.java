@@ -11,14 +11,16 @@ import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.*;
 
 //@Component
 public class CodeGenerator {
@@ -44,12 +46,23 @@ public class CodeGenerator {
     @Value("${spring.datasource.dynamic.primary:#{null}}")
     private String primary;
 
-    public void run(String tableName, String author, String datasource) {
+    public void run(String tableName, String author,String filterPrefix, String datasource) {
         // 代码生成器
         AutoGenerator mpg = new AutoGenerator();
         // 全局配置
         GlobalConfig gc = new GlobalConfig();
         String projectPath = System.getProperty("user.dir");
+
+        File f = new File(this.getClass().getResource("/").getPath());
+        try {
+            String decode = URLDecoder.decode(f.getPath(), "utf-8");
+            projectPath = decode.substring(0, decode.lastIndexOf(File.separator + "target" + File.separator + "classes"));
+
+        } catch (UnsupportedEncodingException e) {
+            // e.printStackTrace();
+            System.out.println("生成代码获取工程路径异常，理论上不能啊");
+        }
+
         gc.setOutputDir(projectPath + "/src/main/java");// 生成文件的输出目录,默认D根目录
         gc.setFileOverride(true); // 是否覆盖已有文件
         gc.setAuthor(author);
@@ -100,6 +113,7 @@ public class CodeGenerator {
                 Map<String, Object> map = new HashMap<>();
                 map.put("ModelVO", pc.getParent() + ".model.vo");
                 map.put("ModelDTO", pc.getParent() + ".model.dto");
+                map.put("ModelQTO", pc.getParent() + ".model.search");
                 map.put("moduleName", CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, pc.getModuleName()));
                 this.setMap(map);
             }
@@ -113,11 +127,12 @@ public class CodeGenerator {
         // 自定义输出配置
         List<FileOutConfig> focList = new ArrayList<>();
         // 自定义配置会被优先输出
+        String finalProjectPath = projectPath;
         focList.add(new FileOutConfig(templatePath) {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-                return projectPath + "/src/main/resources/mapper/" + pc.getModuleName().replace(".", "/")
+                return finalProjectPath + "/src/main/resources/mapper/" + pc.getModuleName().replace(".", "/")
                         + "/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
             }
         });
@@ -128,7 +143,7 @@ public class CodeGenerator {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-                return projectPath + "/src/main/java/" + "/" + pc.getParent().replace(".", "/")
+                return finalProjectPath + "/src/main/java/" + "/" + pc.getParent().replace(".", "/")
                         + "/model/vo/" + tableInfo.getEntityName() + "VO" + StringPool.DOT_JAVA;
             }
         });
@@ -139,8 +154,19 @@ public class CodeGenerator {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-                return projectPath + "/src/main/java/" + "/" + pc.getParent().replace(".", "/")
+                return finalProjectPath + "/src/main/java/" + "/" + pc.getParent().replace(".", "/")
                         + "/model/dto/" + tableInfo.getEntityName() + "DTO" + StringPool.DOT_JAVA;
+            }
+        });
+
+        //QTO
+        String entityQTO = "/templates/entityQTO.java.ftl";
+        focList.add(new FileOutConfig(entityQTO) {
+            @Override
+            public String outputFile(TableInfo tableInfo) {
+                // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
+                return finalProjectPath + "/src/main/java/" + "/" + pc.getParent().replace(".", "/")
+                        + "/model/search/" + tableInfo.getEntityName() + "QTO" + StringPool.DOT_JAVA;
             }
         });
 
@@ -219,6 +245,17 @@ public class CodeGenerator {
         List<TableFill> tableFillList = getTableFills();
         // 策略配置
         StrategyConfig strategy = new StrategyConfig();
+
+        List<String> strings = Lists.newArrayList("tb_", "t_", "b_");
+
+        if(org.apache.commons.lang3.StringUtils.isNotBlank(filterPrefix)){
+            String[] split = filterPrefix.split(",");
+            for (String s : split) {
+                strings.add(s);
+            }
+        }
+
+        strategy.setTablePrefix(strings.toArray(new String[]{}));
         strategy.setNaming(NamingStrategy.underline_to_camel); // 数据库表映射到实体的命名策略
         strategy.setColumnNaming(NamingStrategy.underline_to_camel); // 数据库表字段映射到实体的命名策略, 未指定按照 naming 执行
 //        strategy.setSuperEntityClass("com.baomidou.ant.common.BaseEntity");
@@ -233,9 +270,18 @@ public class CodeGenerator {
         strategy.setSuperEntityColumns("id", "create_user_id", "modify_user_id", "create_time", "modify_time", "sort_id", "state_deleted", "state_paused", "state_locked");
         strategy.setTableFillList(tableFillList);
         if (StringUtils.checkValNotNull(tableName)) {
-            strategy.setInclude(tableName/*scanner("表名，多个英文逗号分割").split(",")*/);
+            if (tableName.indexOf(",") != -1) {
+                String[] split = tableName.split(",");
+                strategy.setInclude(split);
+            } else {
+                strategy.setInclude(tableName/*scanner("表名，多个英文逗号分割").split(",")*/);
+            }
+
+
         } else {
-            strategy.setExclude(excludeTable);
+            if (excludeTable != null && excludeTable.length > 0 && ObjectUtils.isNotEmpty(excludeTable[0])) {
+                strategy.setExclude(excludeTable);
+            }
         }
         strategy.setControllerMappingHyphenStyle(false);
 //        strategy.setTablePrefix(pc.getModuleName() + "_");

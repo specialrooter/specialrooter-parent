@@ -9,16 +9,21 @@ import cn.afterturn.easypoi.excel.entity.enmus.ExcelType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URLEncoder;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class ExcelUtils {
 
@@ -70,7 +75,7 @@ public class ExcelUtils {
      * @param response
      */
     public static void exportExcel(List<?> list, String title, String sheetName, Class<?> pojoClass, String fileName, HttpServletResponse response, String fileType) throws IOException {
-        defaultExport(list, pojoClass, fileName, response, new ExportParams(title, sheetName, ExcelType.XSSF),fileType);
+        defaultExport(list, pojoClass, fileName, response, new ExportParams(title, sheetName, ExcelType.XSSF), fileType);
     }
 
     /**
@@ -160,7 +165,7 @@ public class ExcelUtils {
             if (fileType == null) {
                 fileType = ExcelTypeEnum.XLSX.getValue();
             }
-            response.addHeader("Access-Control-Expose-Headers","Content-Disposition");
+            response.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
             response.setCharacterEncoding("UTF-8");
             response.setHeader("content-Type", "application/vnd.ms-excel");
             response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName + "." + fileType, "UTF-8"));
@@ -169,6 +174,10 @@ public class ExcelUtils {
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
+    }
+
+    public static <T> List<T> importExcel(String filePath, Integer titleRows, Integer headerRows, Class<T> pojoClass) throws IOException {
+        return importExcel(filePath, titleRows, headerRows, pojoClass, "/excel/");
     }
 
     /**
@@ -181,7 +190,7 @@ public class ExcelUtils {
      * @param <T>
      * @return
      */
-    public static <T> List<T> importExcel(String filePath, Integer titleRows, Integer headerRows, Class<T> pojoClass) throws IOException {
+    public static <T> List<T> importExcel(String filePath, Integer titleRows, Integer headerRows, Class<T> pojoClass, String path) throws IOException {
         if (StringUtils.isBlank(filePath)) {
             return null;
         }
@@ -190,7 +199,7 @@ public class ExcelUtils {
         params.setTitleRows(titleRows);
         params.setHeadRows(headerRows);
         params.setNeedSave(true);
-        params.setSaveUrl("/excel/");
+        params.setSaveUrl(path);
         try {
             return ExcelImportUtil.importExcel(new File(filePath), pojoClass, params);
         } catch (NoSuchElementException e) {
@@ -248,6 +257,10 @@ public class ExcelUtils {
         }
     }
 
+    public static <T> List<T> importExcel(InputStream inputStream, Integer titleRows, Integer headerRows, boolean needVerify, Class<T> pojoClass) throws IOException {
+        return importExcel(inputStream, titleRows, headerRows, needVerify, pojoClass, "/excel/");
+    }
+
     /**
      * excel 导入
      *
@@ -259,14 +272,14 @@ public class ExcelUtils {
      * @param <T>
      * @return
      */
-    public static <T> List<T> importExcel(InputStream inputStream, Integer titleRows, Integer headerRows, boolean needVerify, Class<T> pojoClass) throws IOException {
+    public static <T> List<T> importExcel(InputStream inputStream, Integer titleRows, Integer headerRows, boolean needVerify, Class<T> pojoClass, String path) throws IOException {
         if (inputStream == null) {
             return null;
         }
         ImportParams params = new ImportParams();
         params.setTitleRows(titleRows);
         params.setHeadRows(headerRows);
-        params.setSaveUrl("/excel/");
+        params.setSaveUrl(path);
         params.setNeedSave(true);
         params.setNeedVerify(needVerify);
         try {
@@ -303,6 +316,84 @@ public class ExcelUtils {
         TemplateExportParams params = new TemplateExportParams(
                 getExcelTemplatePath(templateName), true);
         return params;
+    }
+
+    /**
+     * 生成File文件
+     *
+     * @param list
+     * @param params
+     * @param pojoClass
+     * @param fileType
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    public static File exportFile(List<?> list, ExportParams params, Class<?> pojoClass, String fileType, String path) throws IOException {
+        Workbook workbook = ExcelExportUtil.exportExcel(params, pojoClass, list);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        workbook.write(bos);
+        InputStream is = new ByteArrayInputStream(bos.toByteArray());
+        // 兼容K8S，动态验证文件夹是否存在，不存在自动创建
+        File filePath = new File(path);
+        if (!filePath.exists() && !filePath.isDirectory()) {
+            filePath.mkdirs();
+        }
+
+        File file = new File(path + UUID.randomUUID().toString() + "." + fileType);
+
+        Files.copy(is, file.toPath(), new CopyOption[]{StandardCopyOption.REPLACE_EXISTING});
+        return file;
+    }
+
+    /**
+     * 生成File文件
+     *
+     * @param list
+     * @param title
+     * @param sheetName
+     * @param exclusions 排出列
+     * @param pojoClass
+     * @param fileType
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    public static File exportFile(List<?> list, String title, String sheetName, String[] exclusions, Class<?> pojoClass, String fileType, String path) throws IOException {
+        ExportParams params = new ExportParams(title, sheetName, ExcelType.XSSF);
+        params.setExclusions(exclusions);
+        return exportFile(list, params, pojoClass, fileType, path);
+    }
+
+    /**
+     * 压缩文件
+     *
+     * @param zipFile  压缩后的文件
+     * @param srcFiles 需要被压缩的文件
+     */
+    public static void toZip(File zipFile, File... srcFiles) throws Exception {
+        if (zipFile == null) {
+            return;
+        }
+        if (!zipFile.getName().endsWith(".zip")) {
+            return;
+        }
+        try (FileOutputStream out = new FileOutputStream(zipFile); ZipOutputStream zos = new ZipOutputStream(out)) {
+            for (File srcFile : srcFiles) {
+                byte[] buf = new byte[StreamUtils.BUFFER_SIZE];
+                zos.putNextEntry(new ZipEntry(srcFile.getName()));
+                int len;
+                FileInputStream in = new FileInputStream(srcFile);
+                while ((len = in.read(buf)) != -1) {
+                    zos.write(buf, 0, len);
+                }
+                in.close();
+            }
+        } finally {
+            for (File file : srcFiles) {
+                file.delete();
+            }
+        }
     }
 
 }

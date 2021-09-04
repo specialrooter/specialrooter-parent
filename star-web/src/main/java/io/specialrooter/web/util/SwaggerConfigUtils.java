@@ -60,6 +60,24 @@ public class SwaggerConfigUtils {
         return pars;
     }
 
+    public static List<Parameter> getHeaderToken() {
+        java.util.List<springfox.documentation.service.Parameter> pars = new ArrayList<springfox.documentation.service.Parameter>();
+        ParameterBuilder tokenPar = new ParameterBuilder();
+
+        tokenPar.name("Authorization").description("Token").modelRef(new ModelRef("string")).parameterType("header").defaultValue("").required(false).build();
+        pars.add(tokenPar.build());
+        tokenPar.name("appId").description("应用ID").modelRef(new ModelRef("string")).parameterType("header").defaultValue("").required(true).build();
+        pars.add(tokenPar.build());
+        tokenPar.name("tenantId").description("租户ID").modelRef(new ModelRef("string")).parameterType("header").defaultValue("").required(true).build();
+        pars.add(tokenPar.build());
+        tokenPar.name("latitude").description("纬度").modelRef(new ModelRef("string")).parameterType("header").defaultValue("").required(false).build();
+        pars.add(tokenPar.build());
+        tokenPar.name("longitude").description("经度").modelRef(new ModelRef("string")).parameterType("header").defaultValue("").required(false).build();
+        pars.add(tokenPar.build());
+
+        return pars;
+    }
+
     public static ApiInfo apiInfo(String title, String description, String version) {
         return apiInfo(title, description, version, null);
     }

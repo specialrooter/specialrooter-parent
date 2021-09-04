@@ -42,6 +42,10 @@ public class ApiUtils {
     }
 
     /**
+     * 用户登录成功后，
+     * 1. 获取用户表user_gid 属性 （用户注册时，自动用SnowflakeIdGenerator.nextId()生成）
+     * 2. 获取用户表user_token 属性 （用户注册时，自动用Base64生成）
+     * 3.
      * 获取当前用户
      *
      * @return
@@ -278,27 +282,6 @@ public class ApiUtils {
             }
         }
         return ip;
-    }
-
-    public static List<Map<String, Object>> listToTree(List<Map<String, Object>> data, String idName, String pIdName, Integer regionLevel) {
-        Map<Integer, List<Map<String, Object>>> supper = new HashMap<>();
-        Map<Integer, Map<Object, List<Map<String, Object>>>> supperKeyMaps = new HashMap<>();
-
-        for (int i = 0; i <= regionLevel; i++) {
-            int finalI = i;
-            List<Map<String, Object>> items = data.stream().filter(map -> map != null && !map.isEmpty() && M.integer(map, "regionLevel").equals(finalI)).collect(Collectors.toList());
-            supper.put(i, items);
-            Map<Object, List<Map<String, Object>>> itemKeyMaps = items.stream().collect(Collectors.groupingBy(o -> o.get(pIdName)));
-            supperKeyMaps.put(i, itemKeyMaps);
-        }
-
-        for (int i = regionLevel; i > 0; i--) {
-            int finalI = i;
-            supper.get(finalI - 1).forEach(map -> {
-                map.put("children", supperKeyMaps.get(finalI).get(map.get(idName)));
-            });
-        }
-        return supper.get(1);
     }
 
 }

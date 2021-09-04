@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import io.specialrooter.context.util.ApiUtils;
 import io.specialrooter.plus.mybatisplus.handler.IdStrategyGenerator;
 import io.specialrooter.plus.mybatisplus.handler.MetaBatchSequenceData;
+import io.specialrooter.plus.mybatisplus.handler.SnowflakeIdGenerator;
 import io.specialrooter.standard.component.mapper.StandardMapper;
 import io.specialrooter.util.Converter;
 import org.apache.ibatis.logging.Log;
@@ -44,7 +45,7 @@ public class StandardServiceImpl implements IStandardService {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private IdStrategyGenerator idStrategyGenerator;
+    private SnowflakeIdGenerator snowflakeIdGenerator;
     @Value("${spring.datasource.url:#{null}}")
     private String databaseURL;
 
@@ -80,8 +81,6 @@ public class StandardServiceImpl implements IStandardService {
             }
             findDataBaseNameByUrl(datasource);
 
-            MetaBatchSequenceData metaBatchSequenceData = idStrategyGenerator.batchIds(clazz, entityList.size());
-            long go = metaBatchSequenceData.getStart();
             Long currentUserId = ApiUtils.getCurrentUserId(0L);
 
             // 获取表字段默认值
@@ -95,8 +94,8 @@ public class StandardServiceImpl implements IStandardService {
                 try {
                     Object invoke = id.getReadMethod().invoke(bdFunction);
                     if (invoke == null) {
-                        long nextId = go;
-                        go++;
+                        long nextId = snowflakeIdGenerator.nextId();//go;
+                        //go++;
                         item.add(nextId);
                         id.getWriteMethod().invoke(bdFunction, nextId);
                     } else {

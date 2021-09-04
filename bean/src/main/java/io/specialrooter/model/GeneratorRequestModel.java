@@ -16,4 +16,6 @@ public class GeneratorRequestModel {
     private String author;
     @ApiModelProperty(value = "数据源名称")
     private String datasource;
+    @ApiModelProperty(value = "过滤前缀，默认已经过滤：tb_、t_、b_")
+    private String filterPrefix;
 }

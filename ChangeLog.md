@@ -1,5 +1,18 @@
 #Technical Middle-ground System
-在线帮助文档：[技术中台体系](http://www.baidu.com) .  
+在线帮助文档：[技术中台体系](http://mgs.aicem.com) .  
+`v5.5.0`  
+1.升级至`spring boot 2.3.8`    
+2.升级至`Spring Cloud Hoxton.SR9`  
+3.新增`QueryWrapperUtils`简化单表、多表追加where条件查询   
+4.添加业务支持工具类 `AppTypeUtil`   
+
+`v5.4.0`    
+1.新增`QueryWrapperUtils`简化单表、多表追加where条件查询   
+2.升级至`spring boot 2.3.7`
+
+`v5.3.0`
+正式发布开源版
+
 `v5.2.1`  
 计划：  
 1.`ExcelUtils`工具类，支持动态模板，不需要编码级别的代码，目标实现零配置代码导出Excel。  

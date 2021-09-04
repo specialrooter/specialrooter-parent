@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.specialrooter</groupId>
+    <artifactId>specialrooter-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>5.3.0</version>
+<!--    <parent>-->
+<!--        <groupId>org.springframework.boot</groupId>-->
+<!--        <artifactId>spring-boot-starter-parent</artifactId>-->
+<!--        <version>2.2.5.RELEASE</version>-->
+<!--        <relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
+<!--    </parent>-->
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+
+    <modules>
+        <module>utils</module>
+        <module>bean</module>
+        <module>plus-elasticsearch</module>
+        <module>plus-mybatis-plus</module>
+        <module>plus-jackson</module>
+        <module>context</module>
+        <module>star-web</module>
+        <module>security</module>
+        <module>jaxb-jdk11</module>
+        <module>star-web-basic</module>
+        <module>search</module>
+        <module>oauth2</module>
+        <module>http</module>
+        <module>basic</module>
+        <module>code-agent</module>
+        <module>plus-scheduled</module>
+    </modules>
+    <properties>
+        <specialrooter.version>5.3.0</specialrooter.version>
+        <java.version>11</java.version>
+        <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
+        <spring-boot.version>2.2.5.RELEASE</spring-boot.version>
+        <lombok.version>1.18.10</lombok.version>
+        <fastjson.version>1.2.70</fastjson.version>
+        <elasticsearch.version>7.4.2</elasticsearch.version>
+        <mybatis-spring.version>2.1.1</mybatis-spring.version>
+        <mybatis-plus.version>3.3.0</mybatis-plus.version>
+        <dynamic-datasource.version>3.0.0</dynamic-datasource.version>
+        <mybatis-pagehelper.version>5.1.10</mybatis-pagehelper.version>
+        <mysql.version>8.0.18</mysql.version>
+        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <freemarker.version>2.3.29</freemarker.version>
+        <springfox-swagger2.version>2.9.2</springfox-swagger2.version>
+        <jaxb.version>2.3.1</jaxb.version>
+        <activation.version>1.1.1</activation.version>
+        <aspectjrt.version>1.9.4</aspectjrt.version>
+        <cglib.version>3.3.0</cglib.version>
+        <okhttp.version>3.14.4</okhttp.version>
+        <httpclient.version>4.5.10</httpclient.version>
+        <zipkin.version>2.12.9</zipkin.version>
+        <bcprov-jdk15on.version>1.64</bcprov-jdk15on.version>
+        <commons-io.version>2.6</commons-io.version>
+        <commons-logging.version>1.2</commons-logging.version>
+
+        <!-- 公网发布 -->
+        <source-plugin.version>3.2.1</source-plugin.version>
+        <javadoc-plugin.version>3.2.0</javadoc-plugin.version>
+        <gpg-plugin.version>1.6</gpg-plugin.version>
+    </properties>
+
+    <!-- 私服发布
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Nexus Internal Releases Repository</name>
+            <url>http://mvn.aicem.cn:8901/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Nexus Internal Snapshots Repository</name>
+            <url>http://mvn.aicem.cn:8901/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+-->
+
+    <!-- 公网发布 -->
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE Version 3</name>
+            <url>http://www.gnu.org/licenses/gpl.txt</url>
+            <distribution>actable</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Special Rooter</name>
+            <email>1015208770@163.com</email>
+            <url>https://github.com/specialrooter</url>
+        </developer>
+    </developers>
+    <scm>
+        <tag>master</tag>
+        <url>git@github.com:specialrooter/specialrooter-parent.git</url>
+        <connection>scm:git:git@github.com:specialrooter/specialrooter-parent.git</connection>
+        <developerConnection>scm:git:git@github.com:specialrooter/specialrooter-parent.git</developerConnection>
+    </scm>
+<!--    <distributionManagement>-->
+<!--        <snapshotRepository>-->
+<!--            <id>sonatype-nexus-snapshots</id>-->
+<!--            <name>Sonatype Nexus Snapshots</name>-->
+<!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+<!--        </snapshotRepository>-->
+<!--        <repository>-->
+<!--            <id>sonatype-nexus-staging</id>-->
+<!--            <name>Nexus Release Repository</name>-->
+<!--            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
+<!--        </repository>-->
+<!--    </distributionManagement>-->
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <!-- Import dependency management from Spring Boot -->
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-extension</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            <!--            <dependency>-->
+            <!--                <groupId>commons-beanutils</groupId>-->
+            <!--                <artifactId>commons-beanutils</artifactId>-->
+            <!--                <version>${commons-beanutils.version}</version>-->
+            <!--            </dependency>-->
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger2</artifactId>
+                <version>${springfox-swagger2.version}</version>
+            </dependency>
+
+            <!-- jaxb模块引用 - start -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${activation.version}</version>
+            </dependency>
+            <!-- jaxb模块引用 - end -->
+
+            <!--            <dependency>-->
+            <!--                <groupId>mysql</groupId>-->
+            <!--                <artifactId>mysql-connector-java</artifactId>-->
+            <!--                <version>${mysql.version}</version>-->
+            <!--            </dependency>-->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis-spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper</artifactId>
+                <version>${mybatis-pagehelper.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
+                <version>${dynamic-datasource.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjrt</artifactId>
+                <version>${aspectjrt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>${bcprov-jdk15on.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${commons-logging.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-high-level-client</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib</artifactId>
+                <version>${cglib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.zipkin.java</groupId>
+                <artifactId>zipkin-server</artifactId>
+                <version>${zipkin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.zipkin.java</groupId>
+                <artifactId>zipkin-autoconfigure-ui</artifactId>
+                <version>${zipkin.version}</version>
+            </dependency>
+
+            <!-- tms -->
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>security</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>jaxb-jdk11</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>plus-mybatis-plus</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>plus-elasticsearch</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>plus-jackson</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>star-web-basic</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>star-web</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>bean</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>basic</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>utils</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>http</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.specialrooter</groupId>
+                <artifactId>context</artifactId>
+                <version>${specialrooter.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
