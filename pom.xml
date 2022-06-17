@@ -36,7 +36,7 @@
         <java.version>11</java.version>
         <spring-cloud.version>Greenwich.SR3</spring-cloud.version>
         <lombok.version>1.18.10</lombok.version>
-        <fastjson.version>1.2.62</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <elasticsearch.version>7.4.2</elasticsearch.version>
         <mybatis-spring.version>2.1.1</mybatis-spring.version>
         <mybatis-plus.version>3.3.0</mybatis-plus.version>
